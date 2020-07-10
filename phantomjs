@@ -1,0 +1,50 @@
+from selenium import webdriver
+import time
+import re
+from selenium.webdriver import DesiredCapabilities
+
+class Get_Messge_From_Phantomjs(object):
+    def __init__(self,url):
+        self.url = url
+        self.headers =  {
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36 Edg/83.0.478.61',
+    }
+        self.driver = webdriver.PhantomJS()
+        # 为phantomjs添加请求头
+        cap = DesiredCapabilities.PHANTOMJS.copy()
+        for key, value in self.headers.items():
+            cap['phantomjs.page.customHeaders.{}'.format(key)] = value
+        # 不载入图片，爬页面速度会快很多
+        cap["phantomjs.page.settings.loadImages"] = False
+
+
+    def request(self):
+        print('开始网页get请求')
+        self.driver.get(self.url)
+        self.scroll_down(driver=self.driver, times=5)  # 执行网页下拉到底部操作，执行5次
+        # 提取所有文章标签
+        response = self.parse(self.driver)
+        return response
+    
+    def parse(self,content):
+        data = content.find_element_by_xpath('/html/body/div[1]/div[4]/div/div[2]').text
+        return data
+    
+    def scroll_down(self,driver, times):
+        for i in range(times):
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")  # 执行JavaScript实现网页下拉倒底部
+            # 保存截图
+            # driver.save_screenshot(str(i + 1) + '.png')
+            time.sleep(2)
+
+
+if __name__ == '__main__':
+    test = Get_Messge_From_Phantomjs("https://tophub.today/c/news/")
+    data = test.request()
+
+    print(data)
+
+
+ 
